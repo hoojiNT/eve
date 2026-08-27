@@ -1,10 +1,8 @@
-import { getDateTimeInTimeZone, resolveTimeZone } from "@/lib/new-year";
-import type { Copy, Locale } from "@/lib/i18n";
-import type { ClockConfig } from "@/store/board";
-import { cn } from "@/lib/utils";
-import { TimeZoneField } from "@/components/widgets/countdown";
-import { Label } from "@/components/ui/label";
-import { useNow } from "@/lib/use-now";
+import { getDateTimeInTimeZone } from "@/lib/new-year";
+import { useHostNow, useWidgetHost } from "../host-context";
+import { resolveWidgetTimeZone } from "../shared/time-zone";
+import type { WidgetRenderProps } from "../types";
+import type { ClockConfig } from "./schema";
 
 function AnalogFace({
   hour,
@@ -48,7 +46,16 @@ function AnalogFace({
       </g>
       {showSeconds ? (
         <g suppressHydrationWarning transform={`rotate(${secondAngle} 50 50)`}>
-          <line x1="50" y1="54" x2="50" y2="16" stroke="currentColor" strokeOpacity="0.55" strokeWidth="0.8" strokeLinecap="round" />
+          <line
+            x1="50"
+            y1="54"
+            x2="50"
+            y2="16"
+            stroke="currentColor"
+            strokeOpacity="0.55"
+            strokeWidth="0.8"
+            strokeLinecap="round"
+          />
         </g>
       ) : null}
       <circle cx="50" cy="50" r="2.2" fill="currentColor" />
@@ -56,16 +63,10 @@ function AnalogFace({
   );
 }
 
-export function ClockWidget({
-  config,
-  locale,
-}: {
-  config: ClockConfig;
-  copy: Copy;
-  locale: Locale;
-}) {
-  const now = useNow(config.showSeconds ? 250 : 1000);
-  const tz = resolveTimeZone(config.timeZone);
+export function ClockWidget({ config }: WidgetRenderProps<ClockConfig>) {
+  const { locale, defaultTimeZone } = useWidgetHost();
+  const now = useHostNow();
+  const tz = resolveWidgetTimeZone(config.timeZone, defaultTimeZone);
   const parts = getDateTimeInTimeZone(now, tz);
 
   const dateLabel = new Intl.DateTimeFormat(locale === "vi" ? "vi-VN" : "en-GB", {
@@ -100,64 +101,6 @@ export function ClockWidget({
           {dateLabel}
         </p>
       </div>
-    </div>
-  );
-}
-
-export function ClockSettings({
-  config,
-  copy,
-  locale,
-  onChange,
-}: {
-  config: ClockConfig;
-  copy: Copy;
-  locale: Locale;
-  onChange: (next: Partial<ClockConfig>) => void;
-}) {
-  return (
-    <div className="flex flex-col gap-4">
-      <TimeZoneField
-        value={config.timeZone}
-        locale={locale}
-        label={copy.timeZone}
-        id="clock-tz"
-        onChange={(timeZone) => onChange({ timeZone })}
-      />
-      <fieldset className="flex flex-col gap-1.5">
-        <legend className="text-xs font-medium tracking-wide text-muted">{copy.format}</legend>
-        <div className="grid grid-cols-2 gap-1.5">
-          <button
-            type="button"
-            onClick={() => onChange({ hour12: false })}
-            className={cn(
-              "h-11 rounded-md px-3 text-sm font-medium",
-              !config.hour12 ? "bg-accent text-accent-fg" : "bg-surface-2 text-fg",
-            )}
-          >
-            {copy.format24}
-          </button>
-          <button
-            type="button"
-            onClick={() => onChange({ hour12: true })}
-            className={cn(
-              "h-11 rounded-md px-3 text-sm font-medium",
-              config.hour12 ? "bg-accent text-accent-fg" : "bg-surface-2 text-fg",
-            )}
-          >
-            {copy.format12}
-          </button>
-        </div>
-      </fieldset>
-      <label className="flex h-11 items-center justify-between gap-3 rounded-md bg-surface-2 px-3">
-        <Label className="text-sm text-fg">{copy.showSeconds}</Label>
-        <input
-          type="checkbox"
-          checked={config.showSeconds}
-          onChange={(e) => onChange({ showSeconds: e.target.checked })}
-          className="size-4 accent-accent"
-        />
-      </label>
     </div>
   );
 }

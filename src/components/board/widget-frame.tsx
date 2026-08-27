@@ -2,64 +2,12 @@ import { GripVertical, Settings, Trash2 } from "lucide-react";
 import { Suspense, useState, type CSSProperties, type PointerEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { LazyWidgetSettingsDialog } from "@/components/board/lazy";
-import { ClockWidget } from "@/components/widgets/clock";
-import { CountdownWidget } from "@/components/widgets/countdown";
-import { NoteWidget } from "@/components/widgets/note";
-import { ProgressWidget } from "@/components/widgets/progress";
+import { IsolatedWidget, WidgetErrorBoundary, WidgetSkeleton } from "@/plugins/isolate";
+import { getWidget } from "@/plugins/registry";
 import type { Copy, Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import type {
-  ClockConfig,
-  CountdownConfig,
-  NoteConfig,
-  ProgressConfig,
-  WidgetInstance,
-} from "@/store/board";
+import type { WidgetInstance } from "@/store/board";
 import { useBoardStore } from "@/store/board";
-
-export function WidgetBody({
-  widget,
-  copy,
-  locale,
-  compact,
-}: {
-  widget: WidgetInstance;
-  copy: Copy;
-  locale: Locale;
-  compact?: boolean;
-}) {
-  const updateConfig = useBoardStore((s) => s.updateConfig);
-
-  switch (widget.type) {
-    case "countdown":
-      return (
-        <CountdownWidget
-          config={widget.config as CountdownConfig}
-          copy={copy}
-          compact={compact}
-        />
-      );
-    case "clock":
-      return <ClockWidget config={widget.config as ClockConfig} copy={copy} locale={locale} />;
-    case "progress":
-      return <ProgressWidget config={widget.config as ProgressConfig} copy={copy} />;
-    case "note":
-      return (
-        <NoteWidget
-          config={widget.config as NoteConfig}
-          copy={copy}
-          onChange={(next) => updateConfig<"note">(widget.id, next)}
-        />
-      );
-  }
-}
-
-const TITLES: Record<WidgetInstance["type"], (c: Copy) => string> = {
-  countdown: (c) => c.countdown,
-  clock: (c) => c.clock,
-  progress: (c) => c.progress,
-  note: (c) => c.note,
-};
 
 export function WidgetFrame({
   widget,
@@ -89,7 +37,9 @@ export function WidgetFrame({
   className?: string;
 }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const title = TITLES[widget.type](copy);
+  const resetWidgetConfig = useBoardStore((s) => s.resetWidgetConfig);
+  const plugin = getWidget(widget.type);
+  const title = plugin ? plugin.display.title(copy) : copy.widgetUnavailable;
 
   return (
     <article
@@ -143,7 +93,15 @@ export function WidgetFrame({
       ) : null}
 
       <div className={cn("min-h-0 flex-1", isEditing && "pt-11")}>
-        <WidgetBody widget={widget} copy={copy} locale={locale} compact={compact} />
+        <WidgetErrorBoundary
+          instanceId={widget.id}
+          type={widget.type}
+          onResetConfig={() => resetWidgetConfig(widget.id)}
+        >
+          <Suspense fallback={<WidgetSkeleton />}>
+            <IsolatedWidget widget={widget} compact={compact} />
+          </Suspense>
+        </WidgetErrorBoundary>
       </div>
 
       {isEditing && canArrange ? (

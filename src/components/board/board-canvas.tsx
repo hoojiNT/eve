@@ -12,12 +12,7 @@ import {
 } from "@/lib/grid";
 import { copy as dict } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import {
-  DENSITY_ROW,
-  WIDGET_DEFAULTS,
-  useBoardStore,
-  type WidgetInstance,
-} from "@/store/board";
+import { DENSITY_ROW, layoutForType, useBoardStore, type WidgetInstance } from "@/store/board";
 
 type DragState = {
   id: string;
@@ -125,7 +120,7 @@ export function BoardCanvas() {
     if (!canArrange) return;
     event.preventDefault();
     event.stopPropagation();
-    const defaults = WIDGET_DEFAULTS[widget.type];
+    const layout = layoutForType(widget.type);
     const origin: GridItem = { id: widget.id, x: widget.x, y: widget.y, w: widget.w, h: widget.h };
     const next: DragState = {
       id: widget.id,
@@ -134,8 +129,8 @@ export function BoardCanvas() {
       ghost: origin,
       startX: event.clientX,
       startY: event.clientY,
-      minW: Math.min(defaults.minW, viewCols),
-      minH: defaults.minH,
+      minW: Math.min(layout.minW, viewCols),
+      minH: layout.minH,
     };
     dragRef.current = next;
     setDrag(next);

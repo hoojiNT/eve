@@ -2,7 +2,11 @@ import { Suspense, useEffect, useState } from "react";
 import { LazyAppToaster, preloadEditChrome } from "@/components/board/lazy";
 import { BoardCanvas } from "@/components/board/board-canvas";
 import { BoardHeader } from "@/components/board/board-header";
+import { registerFirstPartyPlugins } from "@/plugins/catalog";
+import { DashboardHostProvider } from "@/plugins/host";
 import { useBoardStore } from "@/store/board";
+
+registerFirstPartyPlugins();
 
 export function AppShell() {
   const [chrome, setChrome] = useState(false);
@@ -20,14 +24,16 @@ export function AppShell() {
   }, []);
 
   return (
-    <div className="min-h-dvh bg-bg text-fg">
-      <BoardHeader />
-      <BoardCanvas />
-      {chrome ? (
-        <Suspense fallback={null}>
-          <LazyAppToaster />
-        </Suspense>
-      ) : null}
-    </div>
+    <DashboardHostProvider>
+      <div className="min-h-dvh bg-bg text-fg">
+        <BoardHeader />
+        <BoardCanvas />
+        {chrome ? (
+          <Suspense fallback={null}>
+            <LazyAppToaster />
+          </Suspense>
+        ) : null}
+      </div>
+    </DashboardHostProvider>
   );
 }

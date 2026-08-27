@@ -1,18 +1,13 @@
-import { resolveTimeZone, yearProgress } from "@/lib/new-year";
-import type { Copy, Locale } from "@/lib/i18n";
-import type { ProgressConfig } from "@/store/board";
-import { TimeZoneField } from "@/components/widgets/countdown";
-import { useNow } from "@/lib/use-now";
+import { yearProgress } from "@/lib/new-year";
+import { useHostNow, useWidgetHost } from "../host-context";
+import { resolveWidgetTimeZone } from "../shared/time-zone";
+import type { WidgetRenderProps } from "../types";
+import type { ProgressConfig } from "./schema";
 
-export function ProgressWidget({
-  config,
-  copy,
-}: {
-  config: ProgressConfig;
-  copy: Copy;
-}) {
-  const now = useNow(30_000);
-  const tz = resolveTimeZone(config.timeZone);
+export function ProgressWidget({ config }: WidgetRenderProps<ProgressConfig>) {
+  const { copy, defaultTimeZone } = useWidgetHost();
+  const now = useHostNow();
+  const tz = resolveWidgetTimeZone(config.timeZone, defaultTimeZone);
   const stats = yearProgress(now, tz);
   const daysInYear = Math.round(stats.total / 86400000);
   const day = Math.min(Math.floor(stats.elapsed / 86400000) + 1, daysInYear);
@@ -55,27 +50,5 @@ export function ProgressWidget({
         </p>
       </div>
     </div>
-  );
-}
-
-export function ProgressSettings({
-  config,
-  copy,
-  locale,
-  onChange,
-}: {
-  config: ProgressConfig;
-  copy: Copy;
-  locale: Locale;
-  onChange: (next: Partial<ProgressConfig>) => void;
-}) {
-  return (
-    <TimeZoneField
-      value={config.timeZone}
-      locale={locale}
-      label={copy.timeZone}
-      id="progress-tz"
-      onChange={(timeZone) => onChange({ timeZone })}
-    />
   );
 }

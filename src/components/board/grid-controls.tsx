@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { copy as dict } from "@/lib/i18n";
+import { TIMEZONES } from "@/lib/new-year";
 import { cn } from "@/lib/utils";
 import { useBoardStore, type Density } from "@/store/board";
 
@@ -27,8 +28,10 @@ export function GridControls({ defaultOpen = false }: { defaultOpen?: boolean })
   const locale = useBoardStore((s) => s.locale);
   const cols = useBoardStore((s) => s.cols);
   const density = useBoardStore((s) => s.density);
+  const defaultTimeZone = useBoardStore((s) => s.defaultTimeZone);
   const setCols = useBoardStore((s) => s.setCols);
   const setDensity = useBoardStore((s) => s.setDensity);
+  const setDefaultTimeZone = useBoardStore((s) => s.setDefaultTimeZone);
   const reset = useBoardStore((s) => s.reset);
   const copy = dict[locale];
   const [resetOpen, setResetOpen] = useState(false);
@@ -76,6 +79,23 @@ export function GridControls({ defaultOpen = false }: { defaultOpen?: boolean })
               {density === d ? <span className="text-subtle">·</span> : null}
             </DropdownMenuItem>
           ))}
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel>{copy.defaultTimeZone}</DropdownMenuLabel>
+          <div className="px-1.5 pb-2">
+            <select
+              value={defaultTimeZone}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) => setDefaultTimeZone(e.target.value)}
+              className="h-11 w-full rounded-md bg-surface-2 px-3 text-sm text-fg shadow-[var(--shadow-border)] focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none"
+            >
+              {TIMEZONES.map((z) => (
+                <option key={z.id} value={z.id}>
+                  {locale === "vi" ? z.labelVi : z.labelEn}
+                </option>
+              ))}
+            </select>
+          </div>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => setResetOpen(true)}>
             <RotateCcw className="size-4" />

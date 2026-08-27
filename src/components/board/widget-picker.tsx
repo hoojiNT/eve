@@ -1,4 +1,3 @@
-import { Clock, StickyNote, Timer, Orbit } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -9,20 +8,9 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import type { Copy } from "@/lib/i18n";
-import { useBoardStore, type WidgetType } from "@/store/board";
+import { listWidgets } from "@/plugins/registry";
+import { useBoardStore } from "@/store/board";
 import { useState, type ReactNode } from "react";
-
-const ITEMS: {
-  type: WidgetType;
-  icon: typeof Timer;
-  title: (c: Copy) => string;
-  desc: (c: Copy) => string;
-}[] = [
-  { type: "countdown", icon: Timer, title: (c) => c.countdown, desc: (c) => c.countdownDesc },
-  { type: "clock", icon: Clock, title: (c) => c.clock, desc: (c) => c.clockDesc },
-  { type: "progress", icon: Orbit, title: (c) => c.progress, desc: (c) => c.progressDesc },
-  { type: "note", icon: StickyNote, title: (c) => c.note, desc: (c) => c.noteDesc },
-];
 
 export function WidgetPicker({
   copy,
@@ -33,6 +21,7 @@ export function WidgetPicker({
 }) {
   const [open, setOpen] = useState(false);
   const addWidget = useBoardStore((s) => s.addWidget);
+  const items = listWidgets();
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -49,14 +38,14 @@ export function WidgetPicker({
           <DialogDescription>{copy.addWidgetHint}</DialogDescription>
         </DialogHeader>
         <div className="mt-2 grid gap-2">
-          {ITEMS.map((item) => {
-            const Icon = item.icon;
+          {items.map((plugin) => {
+            const Icon = plugin.display.icon;
             return (
               <button
-                key={item.type}
+                key={plugin.type}
                 type="button"
                 onClick={() => {
-                  addWidget(item.type);
+                  addWidget(plugin.type);
                   setOpen(false);
                 }}
                 className="flex items-start gap-3 rounded-lg bg-surface-2 p-3.5 text-left hover:bg-surface-2/80 focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none"
@@ -65,8 +54,8 @@ export function WidgetPicker({
                   <Icon className="size-4" />
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-sm font-medium text-fg">{item.title(copy)}</span>
-                  <span className="mt-0.5 block text-sm text-muted">{item.desc(copy)}</span>
+                  <span className="block text-sm font-medium text-fg">{plugin.display.title(copy)}</span>
+                  <span className="mt-0.5 block text-sm text-muted">{plugin.display.description(copy)}</span>
                 </span>
               </button>
             );
