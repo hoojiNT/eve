@@ -1,0 +1,33 @@
+# dependencies
+node_modules/
+.node_modules.lock
+
+# build / cache
+dist/
+.output/
+.vinxi/
+.nitro/
+.tanstack/
+.vercel/
+*.tsbuildinfo
+
+# env / secrets
+.env
+.env.*
+!.env.example
+
+# os / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# logs & local tooling
+*.log
+.grok/preview.log
+.grok/status
+
+# platform / QA artifacts
+.project_id
+screenshots/
+artifacts/
