@@ -6,6 +6,7 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { nitro } from "nitro/vite";
+import { DevTools } from "@vitejs/devtools";
 // @ts-expect-error JS plugin alongside the TS vite config
 import { grokPwaPlugin } from "./scripts/grok-pwa-plugin.mjs";
 // @ts-expect-error JS plugin alongside the TS vite config
@@ -186,6 +187,9 @@ export default defineConfig(({ command, isPreview }) => ({
     },
   },
   plugins: [
+    // Serve-only dock (plugin `apply: "serve"`). Passive until ⇧⌥D so it
+    // does not cover the board; TanStack Start HTML is injected in __root.
+    DevTools({ embeddedVisibility: "passive" }),
     pgliteBootstrapPlugin(),
     // Before tanstackStart so /auth/popup never falls through to the SPA.
     authPopupPlugin(),

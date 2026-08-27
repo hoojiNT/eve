@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
@@ -34,8 +35,22 @@ export const Route = createRootRoute({
         <AuthProvider>
           <Outlet />
         </AuthProvider>
+        {import.meta.env.DEV ? <ViteDevtoolsDock /> : null}
         <Scripts />
       </body>
     </html>
   ),
 });
+
+/** TanStack Start does not run Vite `transformIndexHtml`, so the dock script is injected here. */
+function ViteDevtoolsDock() {
+  useEffect(() => {
+    if (document.querySelector("script[data-vite-devtools]")) return;
+    const script = document.createElement("script");
+    script.type = "module";
+    script.src = "/__devtools/embedded.js";
+    script.dataset.viteDevtools = "1";
+    document.body.appendChild(script);
+  }, []);
+  return null;
+}
