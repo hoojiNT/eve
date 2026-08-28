@@ -3,13 +3,7 @@ import { Button, cn } from "@eve/ui";
 import { toast } from "@/lib/toast";
 import { WidgetFrame } from "@/components/board/widget-frame";
 import { LazyWidgetPicker } from "@/components/board/lazy";
-import {
-  cellMetrics,
-  clampItem,
-  gridHeight,
-  stackVertically,
-  type GridItem,
-} from "@/lib/grid";
+import { cellMetrics, clampItem, gridHeight, type GridItem } from "@/lib/grid";
 import { copy as dict } from "@/lib/i18n";
 import { DENSITY_ROW, layoutForType, useBoardStore, type WidgetInstance } from "@/store/board";
 
@@ -24,6 +18,11 @@ type DragState = {
   minH: number;
 };
 
+// Floor below which a column stops shrinking; the grid overflows its
+// container instead, so the board scrolls horizontally rather than
+// squeezing widgets or reflowing them into a single column.
+const MIN_COL_WIDTH = 64;
+
 export function BoardCanvas() {
   const widgets = useBoardStore((s) => s.widgets);
   const cols = useBoardStore((s) => s.cols);
@@ -37,40 +36,27 @@ export function BoardCanvas() {
   const copy = dict[locale];
 
   const ref = useRef<HTMLDivElement>(null);
-  const [narrow, setNarrow] = useState(false);
   const [drag, setDrag] = useState<DragState | null>(null);
   const dragRef = useRef<DragState | null>(null);
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const ro = new ResizeObserver((entries) => {
-      const next = entries[0]?.contentRect.width ?? 0;
-      setNarrow(next > 0 && next < 720);
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [widgets.length]);
-
-  const viewCols = narrow ? 4 : cols;
   const gap = 12;
   const rowHeight = DENSITY_ROW[density];
-  const layout = narrow ? stackVertically(widgets, viewCols) : widgets;
   const extra = isEditing ? 2 : 0;
-  const rows = Math.max(gridHeight(layout, extra), isEditing ? 6 : 1);
-  const canArrange = isEditing && !narrow;
-  const viewColsRef = useRef(viewCols);
-  viewColsRef.current = viewCols;
+  const rows = Math.max(gridHeight(widgets, extra), isEditing ? 6 : 1);
+  const canArrange = isEditing;
+  const gridMinWidth = cols * MIN_COL_WIDTH + gap * (cols - 1);
+  const colsRef = useRef(cols);
+  colsRef.current = cols;
 
   useEffect(() => {
     const onMove = (event: PointerEvent) => {
       const current = dragRef.current;
       const el = ref.current;
       if (!current || !el) return;
-      const m = cellMetrics(el.getBoundingClientRect().width, viewColsRef.current, gap, rowHeight);
+      const m = cellMetrics(el.getBoundingClientRect().width, colsRef.current, gap, rowHeight);
       const dx = event.clientX - current.startX;
       const dy = event.clientY - current.startY;
-      const colsNow = viewColsRef.current;
+      const colsNow = colsRef.current;
       const nextGhost =
         current.mode === "move"
           ? clampItem(
@@ -128,7 +114,7 @@ export function BoardCanvas() {
       ghost: origin,
       startX: event.clientX,
       startY: event.clientY,
-      minW: Math.min(layout.minW, viewCols),
+      minW: Math.min(layout.minW, cols),
       minH: layout.minH,
     };
     dragRef.current = next;
@@ -149,9 +135,7 @@ export function BoardCanvas() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6 sm:py-8">
-      {isEditing ? (
-        <p className="mb-4 text-sm text-muted">{narrow ? copy.addWidgetHint : copy.dragHint}</p>
-      ) : null}
+      {isEditing ? <p className="mb-4 text-sm text-muted">{copy.dragHint}</p> : null}
 
       {widgets.length === 0 ? (
         <div className="flex min-h-80 flex-col items-center justify-center rounded-xl bg-surface px-6 py-16 text-center shadow-[var(--shadow-border)]">
@@ -165,68 +149,69 @@ export function BoardCanvas() {
           </div>
         </div>
       ) : (
-        <div
-          ref={ref}
-          className="relative grid w-full"
-          style={{
-            gridTemplateColumns: `repeat(${viewCols}, minmax(0, 1fr))`,
-            gridTemplateRows: `repeat(${rows}, ${rowHeight}px)`,
-            gap,
-          }}
-        >
-          {isEditing ? (
-            <div
-              className="pointer-events-none absolute inset-0 grid"
-              style={{
-                gridTemplateColumns: `repeat(${viewCols}, minmax(0, 1fr))`,
-                gridTemplateRows: `repeat(${rows}, ${rowHeight}px)`,
-                gap,
-              }}
-            >
-              {Array.from({ length: viewCols * rows }).map((_, i) => (
-                <div key={`cell-${i}`} className="rounded-lg ring-1 ring-fg/6" />
-              ))}
-            </div>
-          ) : null}
-
-          {drag ? (
-            <div
-              className="pointer-events-none rounded-xl bg-accent/10"
-              style={{
-                gridColumn: `${drag.ghost.x + 1} / span ${drag.ghost.w}`,
-                gridRow: `${drag.ghost.y + 1} / span ${drag.ghost.h}`,
-                zIndex: 1,
-              }}
-            />
-          ) : null}
-
-          {layout.map((item, index) => {
-            const widget = widgets.find((w) => w.id === item.id);
-            if (!widget) return null;
-            const dragging = drag?.id === widget.id;
-            const pos = dragging && drag ? drag.ghost : item;
-            return (
-              <WidgetFrame
-                key={widget.id}
-                widget={widget}
-                copy={copy}
-                locale={locale}
-                isEditing={isEditing}
-                canArrange={canArrange}
-                compact={pos.w <= 4}
-                isDragging={dragging}
-                onMoveStart={(e) => beginDrag(e, { ...widget, ...item }, "move")}
-                onResizeStart={(e) => beginDrag(e, { ...widget, ...item }, "resize")}
-                onDelete={() => handleDelete(widget)}
+        <div className="-mx-4 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6">
+          <div
+            ref={ref}
+            className="relative grid w-full"
+            style={{
+              gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+              gridTemplateRows: `repeat(${rows}, ${rowHeight}px)`,
+              gap,
+              minWidth: gridMinWidth,
+            }}
+          >
+            {isEditing ? (
+              <div
+                className="pointer-events-none absolute inset-0 grid"
                 style={{
-                  gridColumn: `${pos.x + 1} / span ${pos.w}`,
-                  gridRow: `${pos.y + 1} / span ${pos.h}`,
-                  zIndex: dragging ? 20 : 2,
+                  gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+                  gridTemplateRows: `repeat(${rows}, ${rowHeight}px)`,
+                  gap,
                 }}
-                className={cn(index === 0 && "widget-enter")}
+              >
+                {Array.from({ length: cols * rows }).map((_, i) => (
+                  <div key={`cell-${i}`} className="rounded-lg ring-1 ring-fg/6" />
+                ))}
+              </div>
+            ) : null}
+
+            {drag ? (
+              <div
+                className="pointer-events-none rounded-xl bg-accent/10"
+                style={{
+                  gridColumn: `${drag.ghost.x + 1} / span ${drag.ghost.w}`,
+                  gridRow: `${drag.ghost.y + 1} / span ${drag.ghost.h}`,
+                  zIndex: 1,
+                }}
               />
-            );
-          })}
+            ) : null}
+
+            {widgets.map((widget, index) => {
+              const dragging = drag?.id === widget.id;
+              const pos = dragging && drag ? drag.ghost : widget;
+              return (
+                <WidgetFrame
+                  key={widget.id}
+                  widget={widget}
+                  copy={copy}
+                  locale={locale}
+                  isEditing={isEditing}
+                  canArrange={canArrange}
+                  compact={pos.w <= 4}
+                  isDragging={dragging}
+                  onMoveStart={(e) => beginDrag(e, widget, "move")}
+                  onResizeStart={(e) => beginDrag(e, widget, "resize")}
+                  onDelete={() => handleDelete(widget)}
+                  style={{
+                    gridColumn: `${pos.x + 1} / span ${pos.w}`,
+                    gridRow: `${pos.y + 1} / span ${pos.h}`,
+                    zIndex: dragging ? 20 : 2,
+                  }}
+                  className={cn(index === 0 && "widget-enter")}
+                />
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

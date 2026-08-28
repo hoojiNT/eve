@@ -96,16 +96,6 @@ export function firstFit(
   return { x: 0, y: maxY };
 }
 
-export function stackVertically(items: GridItem[], cols: number): GridItem[] {
-  const sorted = [...items].sort((a, b) => a.y - b.y || a.x - b.x);
-  let y = 0;
-  return sorted.map((item) => {
-    const next = { ...item, x: 0, w: cols, y };
-    y += item.h;
-    return next;
-  });
-}
-
 export function cellMetrics(containerWidth: number, cols: number, gap: number, rowHeight: number) {
   const colWidth = (containerWidth - gap * (cols - 1)) / cols;
   return {
