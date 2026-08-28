@@ -4,10 +4,8 @@ node_modules/
 
 # build / cache
 dist/
-.output/
-.vinxi/
-.nitro/
 .tanstack/
+.wrangler/
 .vercel/
 *.tsbuildinfo
 packages/*/dist/

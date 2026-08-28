@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "eve-dashboard",
+  "compatibility_date": "2026-08-28",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "@tanstack/react-start/server-entry",
+  "observability": { "enabled": true }
+  // DATABASE_URL is set as a secret, not a var: `npx wrangler secret put DATABASE_URL`
+  // (paste Neon's pooled `-pooler` connection string). Same for any other
+  // GROK_AUTH_*/BETTER_AUTH_URL secrets the deployed app needs.
+}
