@@ -38,6 +38,11 @@ function jdFromDate(dd: number, mm: number, yy: number): number {
   return jd;
 }
 
+/** Gregorian JDN at noon UTC. Used by Can Chi day. */
+export function julianDayNumber(year: number, month: number, day: number): number {
+  return jdFromDate(day, month, year);
+}
+
 /** Precise UTC Julian Date of the new moon nearest lunation `k`. */
 function newMoonJd(k: number): number {
   const approxJd = NEW_MOON_EPOCH_JD + k * SYNODIC_MONTH;
