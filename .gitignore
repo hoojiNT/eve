@@ -10,6 +10,7 @@ dist/
 .tanstack/
 .vercel/
 *.tsbuildinfo
+packages/*/dist/
 
 # env / secrets
 .env
@@ -24,10 +25,8 @@ Thumbs.db
 
 # logs & local tooling
 *.log
-.grok/preview.log
-.grok/status
+.local/
 
-# platform / QA artifacts
-.project_id
+# QA artifacts
 screenshots/
 artifacts/

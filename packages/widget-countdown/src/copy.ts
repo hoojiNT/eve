@@ -1,0 +1,38 @@
+import type { Locale } from "@eve/widget-sdk";
+
+export const countdownCopy = {
+  vi: {
+    title: "Đếm ngược năm mới",
+    description: "Ngày, giờ, phút, giây tới năm mới.",
+    mode: "Lịch",
+    gregorian: "Dương lịch",
+    lunar: "Âm lịch · Tết",
+    days: "ngày",
+    hours: "giờ",
+    minutes: "phút",
+    seconds: "giây",
+    remaining: "Còn lại",
+    newYearEve: "Đêm giao thừa",
+    happyNewYear: "Chúc mừng năm mới",
+    yearProgress: "của năm",
+    gregorianTitle: "Năm mới",
+    lunarTitle: "Tết",
+  },
+  en: {
+    title: "New Year countdown",
+    description: "Days, hours, minutes, seconds until the new year.",
+    mode: "Calendar",
+    gregorian: "Gregorian",
+    lunar: "Lunar · Tết",
+    days: "days",
+    hours: "hours",
+    minutes: "minutes",
+    seconds: "seconds",
+    remaining: "Remaining",
+    newYearEve: "New Year's Eve",
+    happyNewYear: "Happy New Year",
+    yearProgress: "of the year",
+    gregorianTitle: "New Year",
+    lunarTitle: "Tết",
+  },
+} as const satisfies Record<Locale, Record<string, string>>;

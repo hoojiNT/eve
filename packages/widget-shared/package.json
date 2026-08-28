@@ -1,0 +1,23 @@
+{
+  "name": "@eve/widget-shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "dependencies": {
+    "@eve/dashboard-host": "workspace:*",
+    "@eve/ui": "workspace:*",
+    "@eve/widget-sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0"
+  }
+}
