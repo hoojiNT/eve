@@ -1,5 +1,5 @@
 {
-  "name": "@eve/widget-shared",
+  "name": "@eve/widget-lunar",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -8,7 +8,7 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test src/lunar-convert.test.ts"
+    "test": "node --experimental-strip-types --test src/schema.test.ts"
   },
   "peerDependencies": {
     "react": "^19.0.0"
@@ -17,7 +17,9 @@
     "@eve/dashboard-host": "workspace:*",
     "@eve/ui": "workspace:*",
     "@eve/widget-sdk": "workspace:*",
-    "astronomy-engine": "^2.1.19"
+    "@eve/widget-shared": "workspace:*",
+    "lucide-react": "^0.510.0",
+    "zod": "^4.4.0"
   },
   "devDependencies": {
     "@types/react": "^19.2.0"

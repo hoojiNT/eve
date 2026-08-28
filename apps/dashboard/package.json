@@ -22,6 +22,7 @@
     "@eve/ui": "workspace:*",
     "@eve/widget-clock": "workspace:*",
     "@eve/widget-countdown": "workspace:*",
+    "@eve/widget-lunar": "workspace:*",
     "@eve/widget-note": "workspace:*",
     "@eve/widget-progress": "workspace:*",
     "@eve/widget-sdk": "workspace:*",
