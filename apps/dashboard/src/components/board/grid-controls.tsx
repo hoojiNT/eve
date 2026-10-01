@@ -16,6 +16,14 @@ import {
   DropdownMenuTrigger,
 } from "@eve/ui";
 import { TIMEZONES } from "@eve/widget-shared";
+import {
+  BACKGROUND_IDS,
+  backgroundOptionLabel,
+  backgroundSwatch,
+  normalizeHex,
+  parseBackgroundId,
+  resolveBackground,
+} from "@/lib/background";
 import { FONT_IDS, fontOptionLabel, parseFontId, resolveFont } from "@/lib/fonts";
 import { copy as dict } from "@/lib/i18n";
 import { useBoardStore, type Density } from "@/store/board";
@@ -30,11 +38,17 @@ export function GridControls({ defaultOpen = false }: { defaultOpen?: boolean })
   const defaultTimeZone = useBoardStore((s) => s.defaultTimeZone);
   const fontId = useBoardStore((s) => s.fontId);
   const fontCustom = useBoardStore((s) => s.fontCustom);
+  const backgroundId = useBoardStore((s) => s.backgroundId);
+  const backgroundColor = useBoardStore((s) => s.backgroundColor);
+  const backgroundImage = useBoardStore((s) => s.backgroundImage);
   const setCols = useBoardStore((s) => s.setCols);
   const setDensity = useBoardStore((s) => s.setDensity);
   const setDefaultTimeZone = useBoardStore((s) => s.setDefaultTimeZone);
   const setFontId = useBoardStore((s) => s.setFontId);
   const setFontCustom = useBoardStore((s) => s.setFontCustom);
+  const setBackgroundId = useBoardStore((s) => s.setBackgroundId);
+  const setBackgroundColor = useBoardStore((s) => s.setBackgroundColor);
+  const setBackgroundImage = useBoardStore((s) => s.setBackgroundImage);
   const reset = useBoardStore((s) => s.reset);
   const copy = dict[locale];
   const [resetOpen, setResetOpen] = useState(false);
@@ -45,6 +59,8 @@ export function GridControls({ defaultOpen = false }: { defaultOpen?: boolean })
     compact: copy.densityCompact,
   };
   const resolvedFont = resolveFont(fontId, fontCustom);
+  const resolvedBackground = resolveBackground(backgroundId, backgroundColor, backgroundImage);
+  const customHex = normalizeHex(backgroundColor) ?? "#0a0a0c";
 
   return (
     <>
@@ -58,6 +74,12 @@ export function GridControls({ defaultOpen = false }: { defaultOpen?: boolean })
         <DropdownMenuContent
           align="end"
           className="max-h-[min(32rem,calc(100dvh-2rem))] w-64 overflow-auto"
+          onPointerDownOutside={(event) => {
+            const active = document.activeElement;
+            if (active instanceof HTMLInputElement && active.type === "color") {
+              event.preventDefault();
+            }
+          }}
         >
           <DropdownMenuLabel>{copy.columns}</DropdownMenuLabel>
           <div className="grid grid-cols-4 gap-1 px-1.5 pb-2">
@@ -124,6 +146,85 @@ export function GridControls({ defaultOpen = false }: { defaultOpen?: boolean })
             >
               {copy.fontPreview}
             </p>
+          </div>
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel>{copy.background}</DropdownMenuLabel>
+          <div className="px-1.5 pb-2" data-board-background>
+            <div className="grid grid-cols-5 gap-1" role="group" aria-label={copy.background}>
+              {BACKGROUND_IDS.map((id) => (
+                <button
+                  key={id}
+                  type="button"
+                  aria-label={backgroundOptionLabel(id, copy)}
+                  aria-pressed={backgroundId === id}
+                  onPointerDown={(event) => {
+                    event.preventDefault();
+                    setBackgroundId(parseBackgroundId(id));
+                  }}
+                  className={cn(
+                    "h-11 rounded-md shadow-[var(--shadow-border)]",
+                    backgroundId === id && "ring-2 ring-fg",
+                  )}
+                  style={{
+                    background:
+                      id === "custom" && !normalizeHex(backgroundColor)
+                        ? "conic-gradient(from 180deg, #8f4d3a, #c8d0dc, #1a2236, #163028, #8f4d3a)"
+                        : backgroundSwatch(id, backgroundColor),
+                  }}
+                />
+              ))}
+            </div>
+            <p className="mt-1.5 px-0.5 text-sm text-muted">
+              {backgroundOptionLabel(backgroundId, copy)}
+            </p>
+            {backgroundId === "custom" ? (
+              <div className="mt-1.5 flex gap-1.5">
+                <input
+                  type="color"
+                  aria-label={copy.backgroundColor}
+                  value={customHex}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => setBackgroundColor(e.target.value)}
+                  className="h-11 w-14 shrink-0 cursor-pointer rounded-md bg-transparent p-1 shadow-[var(--shadow-border)]"
+                />
+                <input
+                  value={backgroundColor}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  onChange={(e) => setBackgroundColor(e.target.value)}
+                  placeholder="#0a0a0c"
+                  aria-label={copy.backgroundColor}
+                  autoComplete="off"
+                  spellCheck={false}
+                  className="h-11 min-w-0 flex-1 rounded-md bg-surface-2 px-3 font-mono text-sm text-fg shadow-[var(--shadow-border)] placeholder:text-subtle focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none"
+                />
+              </div>
+            ) : null}
+            <input
+              value={backgroundImage}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+              onChange={(e) => setBackgroundImage(e.target.value)}
+              placeholder={copy.backgroundImagePlaceholder}
+              aria-label={copy.backgroundImage}
+              inputMode="url"
+              autoComplete="off"
+              spellCheck={false}
+              className="mt-1.5 h-11 w-full rounded-md bg-surface-2 px-3 text-sm text-fg shadow-[var(--shadow-border)] placeholder:text-subtle focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none"
+            />
+            <div
+              className="mt-1.5 h-10 rounded-md shadow-[var(--shadow-border)]"
+              style={{
+                backgroundColor: resolvedBackground.color ?? "#0a0a0c",
+                backgroundImage: resolvedBackground.image ?? undefined,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+              aria-hidden
+            />
           </div>
           <DropdownMenuSeparator />
           <DropdownMenuLabel>{copy.defaultTimeZone}</DropdownMenuLabel>

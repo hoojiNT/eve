@@ -1,6 +1,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { LazyAppToaster, preloadEditChrome } from "@/components/board/lazy";
 import { BoardCanvas } from "@/components/board/board-canvas";
+import { BoardBackground } from "@/components/board/board-background";
 import { BoardFonts } from "@/components/board/board-fonts";
 import { BoardHeader } from "@/components/board/board-header";
 import { registerFirstPartyPlugins } from "@/plugins/catalog";
@@ -26,8 +27,9 @@ export function AppShell() {
 
   return (
     <DashboardHostProvider>
-      <div className="min-h-dvh bg-bg text-fg">
+      <div className="min-h-dvh text-fg">
         <BoardFonts />
+        <BoardBackground />
         <BoardHeader />
         <BoardCanvas />
         {chrome ? (

@@ -60,13 +60,17 @@
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background: var(--color-bg);
+    background-color: var(--board-bg-color, var(--color-bg));
+    background-image: var(--board-bg-image, none);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
     color: var(--color-fg);
   }
 
   body {
     min-height: 100dvh;
-    background: var(--color-bg);
+    background: transparent;
     color: var(--color-fg);
     font-family: var(--font-sans);
   }
@@ -76,12 +80,20 @@
     cursor: pointer;
   }
 
-  h1, h2, h3 {
+  h1,
+  h2,
+  h3 {
     text-wrap: balance;
   }
 
   p {
     text-wrap: pretty;
+  }
+}
+
+@media (min-width: 640px) {
+  html {
+    background-attachment: fixed;
   }
 }
 

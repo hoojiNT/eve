@@ -1,4 +1,10 @@
-import { Suspense, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import {
+  Suspense,
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import { Button, cn } from "@eve/ui";
 import { toast } from "@/lib/toast";
 import { WidgetFrame } from "@/components/board/widget-frame";
@@ -67,7 +73,14 @@ export function BoardCanvas() {
               },
               colsNow,
             )
-          : clampResize(current.origin, m.pxToX(dx), m.pxToY(dy), colsNow, current.minW, current.minH);
+          : clampResize(
+              current.origin,
+              m.pxToX(dx),
+              m.pxToY(dy),
+              colsNow,
+              current.minW,
+              current.minH,
+            );
       const next = { ...current, ghost: nextGhost };
       dragRef.current = next;
       setDrag(next);
@@ -135,7 +148,11 @@ export function BoardCanvas() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6 sm:py-8">
-      {isEditing ? <p className="mb-4 text-sm text-muted">{copy.dragHint}</p> : null}
+      {isEditing ? (
+        <p className="mb-4 text-sm text-muted [text-shadow:0_1px_2px_rgb(0_0_0/0.7)]">
+          {copy.dragHint}
+        </p>
+      ) : null}
 
       {widgets.length === 0 ? (
         <div className="flex min-h-80 flex-col items-center justify-center rounded-xl bg-surface px-6 py-16 text-center shadow-[var(--shadow-border)]">

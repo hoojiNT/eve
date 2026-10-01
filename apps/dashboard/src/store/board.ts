@@ -3,6 +3,13 @@ import { persist } from "zustand/middleware";
 import { FALLBACK_LAYOUT, getWidget, type Locale } from "@eve/widget-sdk";
 import { DEFAULT_TIME_ZONE } from "@eve/widget-shared";
 import { compactVertical, firstFit, packLeft, resolveDrop, type GridItem } from "@/lib/grid";
+import {
+  DEFAULT_BACKGROUND_ID,
+  parseBackgroundColor,
+  parseBackgroundId,
+  parseBackgroundImage,
+  type BackgroundId,
+} from "@/lib/background";
 import { DEFAULT_FONT_ID, parseFontCustom, parseFontId, type FontId } from "@/lib/fonts";
 import { registerFirstPartyPlugins } from "@/plugins/catalog";
 
@@ -81,6 +88,9 @@ type BoardState = {
   defaultTimeZone: string;
   fontId: FontId;
   fontCustom: string;
+  backgroundId: BackgroundId;
+  backgroundColor: string;
+  backgroundImage: string;
   isEditing: boolean;
   setEditing: (value: boolean) => void;
   setCols: (cols: number) => void;
@@ -89,6 +99,9 @@ type BoardState = {
   setDefaultTimeZone: (timeZone: string) => void;
   setFontId: (fontId: FontId) => void;
   setFontCustom: (fontCustom: string) => void;
+  setBackgroundId: (backgroundId: BackgroundId) => void;
+  setBackgroundColor: (backgroundColor: string) => void;
+  setBackgroundImage: (backgroundImage: string) => void;
   moveWidget: (id: string, next: Pick<GridItem, "x" | "y" | "w" | "h">) => void;
   setWidgets: (widgets: WidgetInstance[]) => void;
   addWidget: (type: string) => void;
@@ -109,6 +122,9 @@ export const useBoardStore = create<BoardState>()(
       defaultTimeZone: DEFAULT_TIME_ZONE,
       fontId: DEFAULT_FONT_ID,
       fontCustom: "",
+      backgroundId: DEFAULT_BACKGROUND_ID,
+      backgroundColor: "",
+      backgroundImage: "",
       isEditing: false,
       setEditing: (value) => set({ isEditing: value }),
       setCols: (cols) =>
@@ -121,6 +137,14 @@ export const useBoardStore = create<BoardState>()(
       setDefaultTimeZone: (timeZone) => set({ defaultTimeZone: timeZone }),
       setFontId: (fontId) => set({ fontId: parseFontId(fontId) }),
       setFontCustom: (fontCustom) => set({ fontCustom: parseFontCustom(fontCustom) }),
+      setBackgroundId: (backgroundId) => {
+        const id = parseBackgroundId(backgroundId);
+        set(id === "default" ? { backgroundId: id, backgroundImage: "" } : { backgroundId: id });
+      },
+      setBackgroundColor: (backgroundColor) =>
+        set({ backgroundColor: parseBackgroundColor(backgroundColor) }),
+      setBackgroundImage: (backgroundImage) =>
+        set({ backgroundImage: parseBackgroundImage(backgroundImage) }),
       moveWidget: (id, next) => {
         const { widgets, cols } = get();
         set({
@@ -197,6 +221,9 @@ export const useBoardStore = create<BoardState>()(
         defaultTimeZone: state.defaultTimeZone,
         fontId: parseFontId(state.fontId),
         fontCustom: parseFontCustom(state.fontCustom),
+        backgroundId: parseBackgroundId(state.backgroundId),
+        backgroundColor: parseBackgroundColor(state.backgroundColor),
+        backgroundImage: parseBackgroundImage(state.backgroundImage),
       }),
       merge: (persistedState, currentState) => {
         const persisted = (persistedState ?? {}) as Partial<BoardState>;
@@ -205,6 +232,13 @@ export const useBoardStore = create<BoardState>()(
           ...persisted,
           fontId: parseFontId(persisted.fontId ?? currentState.fontId),
           fontCustom: parseFontCustom(persisted.fontCustom ?? currentState.fontCustom),
+          backgroundId: parseBackgroundId(persisted.backgroundId ?? currentState.backgroundId),
+          backgroundColor: parseBackgroundColor(
+            persisted.backgroundColor ?? currentState.backgroundColor,
+          ),
+          backgroundImage: parseBackgroundImage(
+            persisted.backgroundImage ?? currentState.backgroundImage,
+          ),
         };
       },
     },
