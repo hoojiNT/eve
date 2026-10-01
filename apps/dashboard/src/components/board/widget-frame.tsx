@@ -43,7 +43,7 @@ export function WidgetFrame({
   return (
     <article
       className={cn(
-        "relative flex h-full min-h-0 flex-col overflow-hidden rounded-xl bg-surface p-4 text-fg shadow-[var(--shadow-border)]",
+        "liquid-glass relative flex h-full min-h-0 flex-col overflow-hidden rounded-xl p-4 text-fg shadow-[var(--shadow-border)]",
         isDragging && "z-20 shadow-[var(--shadow-border-hover),var(--shadow-lift)]",
         isEditing && "ring-1 ring-fg/8 select-none",
         className,

@@ -125,5 +125,38 @@
 }
 
 .widget-enter {
-  animation: digit-in var(--motion-slow) var(--ease-smooth-out) both;
+  animation: digit-in var(--motion-slow) var(--ease-smooth-out) backwards;
+}
+
+/* Liquid glass, same idea as a CSS displacement card: a frosted tint, then an
+   SVG lens that bends the backdrop at the rim. The blur layer remains when
+   backdrop-filter url() is unsupported. */
+.liquid-glass {
+  isolation: isolate;
+  background: transparent;
+}
+
+.liquid-glass::before,
+.liquid-glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.liquid-glass::before {
+  background: rgba(12, 12, 16, 0.5);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+}
+
+.liquid-glass::after {
+  -webkit-backdrop-filter: url("#eve-liquid") brightness(1.16);
+  backdrop-filter: url("#eve-liquid") brightness(1.16);
+  box-shadow:
+    inset 6px 6px 0 -6px rgba(255, 255, 255, 0.55),
+    inset -5px -5px 0 -5px rgba(255, 255, 255, 0.16),
+    inset 0 0 14px rgba(255, 255, 255, 0.07);
 }

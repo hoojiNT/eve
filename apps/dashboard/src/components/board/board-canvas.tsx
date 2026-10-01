@@ -155,7 +155,7 @@ export function BoardCanvas() {
       ) : null}
 
       {widgets.length === 0 ? (
-        <div className="flex min-h-80 flex-col items-center justify-center rounded-xl bg-surface px-6 py-16 text-center shadow-[var(--shadow-border)]">
+        <div className="liquid-glass flex min-h-80 flex-col items-center justify-center rounded-xl px-6 py-16 text-center shadow-[var(--shadow-border)]">
           <p className="font-display text-2xl font-medium tracking-tight">{copy.emptyTitle}</p>
           <p className="mt-2 max-w-md text-sm text-muted">{copy.emptyBody}</p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
