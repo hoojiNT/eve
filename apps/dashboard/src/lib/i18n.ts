@@ -33,6 +33,12 @@ export const copy = {
     added: "Đã thêm widget",
     widgetUnavailable: "Widget không khả dụng",
     defaultTimeZone: "Múi giờ bảng",
+    font: "Font chữ",
+    fontDefault: "Mặc định",
+    fontSystem: "Hệ thống",
+    fontCustom: "Khác…",
+    fontCustomPlaceholder: "Tên Google Font, ví dụ Roboto",
+    fontPreview: "Năm mới",
   },
   en: {
     appName: "Eve",
@@ -64,6 +70,12 @@ export const copy = {
     added: "Widget added",
     widgetUnavailable: "Widget unavailable",
     defaultTimeZone: "Board time zone",
+    font: "Typeface",
+    fontDefault: "Default",
+    fontSystem: "System",
+    fontCustom: "Custom…",
+    fontCustomPlaceholder: "Google Font name, e.g. Roboto",
+    fontPreview: "New year",
   },
 } as const;
 

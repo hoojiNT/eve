@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware";
 import { FALLBACK_LAYOUT, getWidget, type Locale } from "@eve/widget-sdk";
 import { DEFAULT_TIME_ZONE } from "@eve/widget-shared";
 import { compactVertical, firstFit, packLeft, resolveDrop, type GridItem } from "@/lib/grid";
+import { DEFAULT_FONT_ID, parseFontCustom, parseFontId, type FontId } from "@/lib/fonts";
 import { registerFirstPartyPlugins } from "@/plugins/catalog";
 
 export type WidgetInstance = GridItem & {
@@ -78,12 +79,16 @@ type BoardState = {
   density: Density;
   locale: Locale;
   defaultTimeZone: string;
+  fontId: FontId;
+  fontCustom: string;
   isEditing: boolean;
   setEditing: (value: boolean) => void;
   setCols: (cols: number) => void;
   setDensity: (density: Density) => void;
   setLocale: (locale: Locale) => void;
   setDefaultTimeZone: (timeZone: string) => void;
+  setFontId: (fontId: FontId) => void;
+  setFontCustom: (fontCustom: string) => void;
   moveWidget: (id: string, next: Pick<GridItem, "x" | "y" | "w" | "h">) => void;
   setWidgets: (widgets: WidgetInstance[]) => void;
   addWidget: (type: string) => void;
@@ -102,6 +107,8 @@ export const useBoardStore = create<BoardState>()(
       density: "regular",
       locale: "vi",
       defaultTimeZone: DEFAULT_TIME_ZONE,
+      fontId: DEFAULT_FONT_ID,
+      fontCustom: "",
       isEditing: false,
       setEditing: (value) => set({ isEditing: value }),
       setCols: (cols) =>
@@ -112,6 +119,8 @@ export const useBoardStore = create<BoardState>()(
       setDensity: (density) => set({ density }),
       setLocale: (locale) => set({ locale }),
       setDefaultTimeZone: (timeZone) => set({ defaultTimeZone: timeZone }),
+      setFontId: (fontId) => set({ fontId: parseFontId(fontId) }),
+      setFontCustom: (fontCustom) => set({ fontCustom: parseFontCustom(fontCustom) }),
       moveWidget: (id, next) => {
         const { widgets, cols } = get();
         set({
@@ -186,7 +195,18 @@ export const useBoardStore = create<BoardState>()(
         density: state.density,
         locale: state.locale,
         defaultTimeZone: state.defaultTimeZone,
+        fontId: parseFontId(state.fontId),
+        fontCustom: parseFontCustom(state.fontCustom),
       }),
+      merge: (persistedState, currentState) => {
+        const persisted = (persistedState ?? {}) as Partial<BoardState>;
+        return {
+          ...currentState,
+          ...persisted,
+          fontId: parseFontId(persisted.fontId ?? currentState.fontId),
+          fontCustom: parseFontCustom(persisted.fontCustom ?? currentState.fontCustom),
+        };
+      },
     },
   ),
 );

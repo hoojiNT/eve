@@ -45,7 +45,7 @@ export function BoardHeader() {
         {gridReady ? (
           <Suspense
             fallback={
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button variant="outline" size="sm" className="gap-2" aria-label={copy.grid}>
                 <LayoutGrid className="size-4" />
                 <span className="hidden sm:inline">{copy.grid}</span>
               </Button>
@@ -58,6 +58,7 @@ export function BoardHeader() {
             variant="outline"
             size="sm"
             className="gap-2"
+            aria-label={copy.grid}
             onPointerEnter={preloadGrid}
             onFocus={preloadGrid}
             onClick={() => {
