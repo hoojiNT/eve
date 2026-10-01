@@ -16,24 +16,35 @@ export function WidgetPicker({
   copy,
   locale,
   trigger,
+  open: openProp,
+  onOpenChange,
 }: {
   copy: Copy;
   locale: Locale;
   trigger?: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [uncontrolled, setUncontrolled] = useState(false);
+  const open = openProp ?? uncontrolled;
+  const setOpen = (next: boolean) => {
+    onOpenChange?.(next);
+    if (openProp === undefined) setUncontrolled(next);
+  };
   const addWidget = useBoardStore((s) => s.addWidget);
   const items = listWidgets();
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger ?? (
+      {trigger ? (
+        <DialogTrigger asChild>{trigger}</DialogTrigger>
+      ) : openProp === undefined ? (
+        <DialogTrigger asChild>
           <Button variant="secondary" size="sm">
             {copy.addWidget}
           </Button>
-        )}
-      </DialogTrigger>
+        </DialogTrigger>
+      ) : null}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{copy.addWidgetTitle}</DialogTitle>
@@ -56,8 +67,12 @@ export function WidgetPicker({
                   <Icon className="size-4" />
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-sm font-medium text-fg">{plugin.display.title(locale)}</span>
-                  <span className="mt-0.5 block text-sm text-muted">{plugin.display.description(locale)}</span>
+                  <span className="block text-sm font-medium text-fg">
+                    {plugin.display.title(locale)}
+                  </span>
+                  <span className="mt-0.5 block text-sm text-muted">
+                    {plugin.display.description(locale)}
+                  </span>
                 </span>
               </button>
             );

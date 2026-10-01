@@ -1,105 +1,59 @@
-import { Languages, LayoutGrid, Plus } from "lucide-react";
-import { Suspense, useState } from "react";
-import { Button } from "@eve/ui";
-import { LazyGridControls, LazyWidgetPicker, preloadEditChrome } from "@/components/board/lazy";
-import { toast } from "@/lib/toast";
+import { SlidersHorizontal } from "lucide-react";
+import { Suspense, useState, type ComponentProps } from "react";
+import { cn } from "@eve/ui";
+import { LazyGridControls } from "@/components/board/lazy";
 import { copy as dict } from "@/lib/i18n";
 import { useBoardStore } from "@/store/board";
 
 export function BoardHeader() {
   const locale = useBoardStore((s) => s.locale);
-  const isEditing = useBoardStore((s) => s.isEditing);
-  const setEditing = useBoardStore((s) => s.setEditing);
-  const setLocale = useBoardStore((s) => s.setLocale);
   const copy = dict[locale];
-  const [gridReady, setGridReady] = useState(false);
-  const [gridOpen, setGridOpen] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [open, setOpen] = useState(false);
 
-  const preloadGrid = () => {
+  const preload = () => {
     void import("./grid-controls");
   };
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-bg/90 px-4 py-3 backdrop-blur-sm sm:px-6">
-      <div className="mx-auto flex max-w-6xl items-center gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="font-display text-xl leading-none font-medium tracking-tight text-fg">
-            {copy.appName}
-          </p>
-          <p className="mt-1 hidden text-xs text-muted sm:block">{copy.tagline}</p>
-        </div>
-
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          aria-label={copy.language}
-          onClick={() => setLocale(locale === "vi" ? "en" : "vi")}
-        >
-          <Languages className="size-4" />
-          <span className="sr-only">{copy.language}</span>
-        </Button>
-        <span className="hidden text-xs tracking-wide text-subtle uppercase sm:inline">
-          {locale}
-        </span>
-
-        {gridReady ? (
-          <Suspense
-            fallback={
-              <Button variant="outline" size="sm" className="gap-2" aria-label={copy.grid}>
-                <LayoutGrid className="size-4" />
-                <span className="hidden sm:inline">{copy.grid}</span>
-              </Button>
-            }
-          >
-            <LazyGridControls defaultOpen={gridOpen} />
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+      <div className="pointer-events-auto">
+        {ready ? (
+          <Suspense fallback={<DockButton label={copy.boardMenu} />}>
+            <LazyGridControls defaultOpen={open} trigger={<DockButton label={copy.boardMenu} />} />
           </Suspense>
         ) : (
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2"
-            aria-label={copy.grid}
-            onPointerEnter={preloadGrid}
-            onFocus={preloadGrid}
+          <DockButton
+            label={copy.boardMenu}
+            onPointerEnter={preload}
+            onFocus={preload}
             onClick={() => {
-              preloadGrid();
-              setGridOpen(true);
-              setGridReady(true);
+              preload();
+              setOpen(true);
+              setReady(true);
             }}
-          >
-            <LayoutGrid className="size-4" />
-            <span className="hidden sm:inline">{copy.grid}</span>
-          </Button>
+          />
         )}
-
-        {isEditing ? (
-          <Suspense fallback={null}>
-            <LazyWidgetPicker
-              copy={copy}
-              locale={locale}
-              trigger={
-                <Button variant="secondary" size="sm" className="gap-1.5">
-                  <Plus className="size-4" />
-                  <span className="hidden sm:inline">{copy.addWidget}</span>
-                </Button>
-              }
-            />
-          </Suspense>
-        ) : null}
-
-        <Button
-          variant={isEditing ? "default" : "secondary"}
-          size="sm"
-          onPointerEnter={preloadEditChrome}
-          onClick={() => {
-            preloadEditChrome();
-            setEditing(!isEditing);
-            if (!isEditing) toast(copy.dragHint);
-          }}
-        >
-          {isEditing ? copy.done : copy.edit}
-        </Button>
       </div>
-    </header>
+    </div>
+  );
+}
+
+function DockButton({ label, className, ...props }: ComponentProps<"button"> & { label: string }) {
+  const isEditing = useBoardStore((s) => s.isEditing);
+
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      className={cn(
+        "liquid-glass relative flex size-14 items-center justify-center overflow-hidden rounded-full text-fg shadow-[var(--shadow-border),var(--shadow-lift)] focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none",
+        isEditing && "ring-2 ring-fg",
+        className,
+      )}
+      {...props}
+    >
+      <SlidersHorizontal className="relative z-[1] size-5" />
+    </button>
   );
 }

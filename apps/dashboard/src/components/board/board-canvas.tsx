@@ -147,7 +147,7 @@ export function BoardCanvas() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6 sm:py-8">
+    <div className="mx-auto min-h-dvh w-full max-w-6xl px-4 pt-6 pb-28 sm:px-6 sm:pt-10 sm:pb-32">
       {isEditing ? (
         <p className="mb-4 text-sm text-muted [text-shadow:0_1px_2px_rgb(0_0_0/0.7)]">
           {copy.dragHint}

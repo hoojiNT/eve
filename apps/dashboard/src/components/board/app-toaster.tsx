@@ -4,7 +4,7 @@ export function AppToaster() {
   return (
     <Toaster
       theme="dark"
-      position="bottom-center"
+      position="top-center"
       toastOptions={{
         classNames: {
           toast: "bg-surface text-fg shadow-[var(--shadow-border)] border-0",

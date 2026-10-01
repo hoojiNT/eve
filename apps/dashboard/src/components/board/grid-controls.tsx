@@ -1,5 +1,5 @@
-import { LayoutGrid, RotateCcw } from "lucide-react";
-import { useState } from "react";
+import { Check, Languages, Plus, RotateCcw, SquarePen } from "lucide-react";
+import { useState, type ReactNode } from "react";
 import {
   Button,
   cn,
@@ -25,14 +25,25 @@ import {
   resolveBackground,
 } from "@/lib/background";
 import { FONT_IDS, fontOptionLabel, parseFontId, resolveFont } from "@/lib/fonts";
+import { WidgetPicker } from "@/components/board/widget-picker";
 import { copy as dict } from "@/lib/i18n";
+import { toast } from "@/lib/toast";
 import { useBoardStore, type Density } from "@/store/board";
 
 const COLS = [4, 6, 8, 12] as const;
 const DENSITIES: Density[] = ["comfortable", "regular", "compact"];
 
-export function GridControls({ defaultOpen = false }: { defaultOpen?: boolean }) {
+export function GridControls({
+  defaultOpen = false,
+  trigger,
+}: {
+  defaultOpen?: boolean;
+  trigger: ReactNode;
+}) {
   const locale = useBoardStore((s) => s.locale);
+  const isEditing = useBoardStore((s) => s.isEditing);
+  const setEditing = useBoardStore((s) => s.setEditing);
+  const setLocale = useBoardStore((s) => s.setLocale);
   const cols = useBoardStore((s) => s.cols);
   const density = useBoardStore((s) => s.density);
   const defaultTimeZone = useBoardStore((s) => s.defaultTimeZone);
@@ -52,6 +63,7 @@ export function GridControls({ defaultOpen = false }: { defaultOpen?: boolean })
   const reset = useBoardStore((s) => s.reset);
   const copy = dict[locale];
   const [resetOpen, setResetOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const densityLabel: Record<Density, string> = {
     comfortable: copy.densityComfortable,
@@ -65,15 +77,13 @@ export function GridControls({ defaultOpen = false }: { defaultOpen?: boolean })
   return (
     <>
       <DropdownMenu defaultOpen={defaultOpen}>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="gap-2" aria-label={copy.grid}>
-            <LayoutGrid className="size-4" />
-            <span className="hidden sm:inline">{copy.grid}</span>
-          </Button>
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
         <DropdownMenuContent
-          align="end"
-          className="max-h-[min(32rem,calc(100dvh-2rem))] w-64 overflow-auto"
+          side="top"
+          align="center"
+          sideOffset={12}
+          collisionPadding={16}
+          className="max-h-[min(32rem,calc(100dvh-7rem))] w-64 overflow-auto"
           onPointerDownOutside={(event) => {
             const active = document.activeElement;
             if (active instanceof HTMLInputElement && active.type === "color") {
@@ -81,6 +91,32 @@ export function GridControls({ defaultOpen = false }: { defaultOpen?: boolean })
             }
           }}
         >
+          <DropdownMenuItem
+            onSelect={() => {
+              setEditing(!isEditing);
+              if (!isEditing) toast(copy.dragHint);
+            }}
+          >
+            {isEditing ? <Check className="size-4" /> : <SquarePen className="size-4" />}
+            {isEditing ? copy.done : copy.edit}
+          </DropdownMenuItem>
+          {isEditing ? (
+            <DropdownMenuItem onSelect={() => setPickerOpen(true)}>
+              <Plus className="size-4" />
+              {copy.addWidget}
+            </DropdownMenuItem>
+          ) : null}
+          <DropdownMenuItem
+            onSelect={(event) => {
+              event.preventDefault();
+              setLocale(locale === "vi" ? "en" : "vi");
+            }}
+          >
+            <Languages className="size-4" />
+            {copy.language}
+            <span className="ml-auto text-xs tracking-wide text-subtle uppercase">{locale}</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuLabel>{copy.columns}</DropdownMenuLabel>
           <div className="grid grid-cols-4 gap-1 px-1.5 pb-2">
             {COLS.map((n) => (
@@ -250,6 +286,8 @@ export function GridControls({ defaultOpen = false }: { defaultOpen?: boolean })
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <WidgetPicker copy={copy} locale={locale} open={pickerOpen} onOpenChange={setPickerOpen} />
 
       <Dialog open={resetOpen} onOpenChange={setResetOpen}>
         <DialogContent>
