@@ -15,8 +15,9 @@ Bản đang chạy: https://eve-dashboard.thehoinguyen.workers.dev
 | `@eve/widget-lunar` | Âm lịch |
 | `@eve/widget-progress` | Hành trình năm |
 | `@eve/widget-note` | Ghi chú |
+| `@eve/widget-piano` | Đàn piano |
 
-Bảng mặc định gồm đếm ngược, đồng hồ, hành trình năm và một ghi chú năm mới. Âm lịch thêm từ menu bảng.
+Bảng mặc định gồm đếm ngược, đồng hồ, hành trình năm và một ghi chú năm mới. Âm lịch và đàn piano thêm từ menu bảng.
 
 ## Chạy local
 
@@ -44,7 +45,7 @@ Chạy từ thư mục gốc:
 | `pnpm test` | Test toàn workspace |
 | `pnpm lint` | ESLint |
 | `pnpm format` | Prettier |
-| `pnpm --filter dashboard deploy` | Build, migrate, rồi deploy Cloudflare Worker |
+| `pnpm --filter dashboard run deploy` | Build, migrate nếu shell có `DATABASE_URL`, rồi deploy Cloudflare Worker |
 
 ## Cấu trúc
 
@@ -77,18 +78,46 @@ Plugin chỉ nói chuyện với bảng qua host API: locale, múi giờ, chế 
 
 ## Deploy
 
-Worker tên `eve-dashboard`.
+Từ thư mục gốc. Lệnh build checkout hiện tại rồi đẩy Worker `eve-dashboard` lên Cloudflare. Không push git.
 
 ```bash
-pnpm --filter dashboard deploy
+pnpm --filter dashboard run deploy
 ```
 
-`DATABASE_URL` là Wrangler secret (chuỗi kết nối Postgres pooled):
+Trong `apps/dashboard` lệnh chạy lần lượt `vite build`, `node scripts/migrate.mjs`, rồi `wrangler deploy`. Wrangler đọc `dist/server/wrangler.json`, file này sinh từ `wrangler.jsonc`. Cần Wrangler 4 đã đăng nhập:
+
+```bash
+pnpm --filter dashboard exec wrangler whoami
+```
+
+### Postgres
+
+`DATABASE_URL` của Worker là secret, không ghi trong `wrangler.jsonc`. Dùng chuỗi pooled (host có `-pooler`):
 
 ```bash
 pnpm --filter dashboard exec wrangler secret put DATABASE_URL
 ```
 
-Khi secret này trống, bước migrate bỏ qua và app dùng PGLite.
+Secret đó không vào bước migrate. `scripts/migrate.mjs` chỉ thấy `DATABASE_URL` của process đang build, và không tự đọc `.env`.
 
-Auth là Better Auth tại `/api/auth/*`, ủy quyền sang Grok auth broker. Bản deploy bật auth bằng `VITE_AUTH_ENABLED=true`, cùng `GROK_AUTH_*`, `BETTER_AUTH_URL` và `DATABASE_URL`.
+- Shell không có biến: log `[migrate] DATABASE_URL not set — skipping`. Schema Postgres giữ nguyên. Worker vẫn dùng secret đã gắn. Chưa từng gắn secret thì Worker chạy PGLite và tự áp `migrations/` lúc khởi động.
+- Muốn áp migration trong lần deploy: đưa chuỗi unpooled vào shell. File `.env` ở gốc (không commit) có `DATABASE_URL` cho Worker và `DATABASE_URL_UNPOOLED` cho migrate.
+
+```bash
+set -a && source .env && set +a
+DATABASE_URL="$DATABASE_URL_UNPOOLED" pnpm --filter dashboard run deploy
+```
+
+### Auth
+
+Better Auth tại `/api/auth/*`, ủy quyền sang Grok auth broker.
+
+`VITE_AUTH_ENABLED` được Vite gắn lúc build. Giá trị `false` tắt đăng nhập. Đặt biến trước lệnh deploy. Secret gắn sau build không đổi bundle client.
+
+Bật auth: build với `VITE_AUTH_ENABLED=true`, rồi gắn các secret `DATABASE_URL`, `BETTER_AUTH_URL` (origin công khai của Worker), `BETTER_AUTH_SECRET`, `GROK_AUTH_ISSUER`, `GROK_AUTH_CLIENT_ID`, `GROK_AUTH_CLIENT_SECRET`.
+
+```bash
+pnpm --filter dashboard exec wrangler secret put BETTER_AUTH_URL
+```
+
+Auth tắt (`VITE_AUTH_ENABLED=false`) mà Worker có `DATABASE_URL` thì server từ chối user dev trên database thật.
