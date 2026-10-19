@@ -65,6 +65,9 @@ importers:
       '@eve/widget-note':
         specifier: workspace:*
         version: link:../../packages/widget-note
+      '@eve/widget-piano':
+        specifier: workspace:*
+        version: link:../../packages/widget-piano
       '@eve/widget-progress':
         specifier: workspace:*
         version: link:../../packages/widget-progress
@@ -391,6 +394,31 @@ importers:
         version: 19.2.18
 
   packages/widget-note:
+    dependencies:
+      '@eve/dashboard-host':
+        specifier: workspace:*
+        version: link:../dashboard-host
+      '@eve/ui':
+        specifier: workspace:*
+        version: link:../ui
+      '@eve/widget-sdk':
+        specifier: workspace:*
+        version: link:../widget-sdk
+      lucide-react:
+        specifier: ^0.510.0
+        version: 0.510.0(react@19.2.8)
+      react:
+        specifier: ^19.0.0
+        version: 19.2.8
+      zod:
+        specifier: ^4.4.0
+        version: 4.4.3
+    devDependencies:
+      '@types/react':
+        specifier: ^19.2.0
+        version: 19.2.18
+
+  packages/widget-piano:
     dependencies:
       '@eve/dashboard-host':
         specifier: workspace:*

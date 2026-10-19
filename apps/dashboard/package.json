@@ -24,6 +24,7 @@
     "@eve/widget-countdown": "workspace:*",
     "@eve/widget-lunar": "workspace:*",
     "@eve/widget-note": "workspace:*",
+    "@eve/widget-piano": "workspace:*",
     "@eve/widget-progress": "workspace:*",
     "@eve/widget-sdk": "workspace:*",
     "@eve/widget-shared": "workspace:*",

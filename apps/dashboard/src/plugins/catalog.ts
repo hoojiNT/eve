@@ -2,6 +2,7 @@ import { clockPlugin } from "@eve/widget-clock";
 import { countdownPlugin } from "@eve/widget-countdown";
 import { lunarPlugin } from "@eve/widget-lunar";
 import { notePlugin } from "@eve/widget-note";
+import { pianoPlugin } from "@eve/widget-piano";
 import { progressPlugin } from "@eve/widget-progress";
 import { registerWidget } from "@eve/widget-sdk";
 
@@ -16,4 +17,5 @@ export function registerFirstPartyPlugins() {
   registerWidget(lunarPlugin);
   registerWidget(progressPlugin);
   registerWidget(notePlugin);
+  registerWidget(pianoPlugin);
 }
