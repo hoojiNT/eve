@@ -1,24 +1,12 @@
+import { memo, useMemo } from "react";
 import { getDateTimeInTimeZone, resolveWidgetTimeZone } from "@eve/widget-shared";
 import { useHostNow, useWidgetHost } from "@eve/dashboard-host";
 import type { WidgetRenderProps } from "@eve/widget-sdk";
 import type { ClockConfig } from "./schema";
 
-function AnalogFace({
-  hour,
-  minute,
-  second,
-  showSeconds,
-}: {
-  hour: number;
-  minute: number;
-  second: number;
-  showSeconds: boolean;
-}) {
-  const hourAngle = ((hour % 12) + minute / 60) * 30;
-  const minuteAngle = (minute + second / 60) * 6;
-  const secondAngle = second * 6;
+const AnalogDial = memo(function AnalogDial() {
   return (
-    <svg viewBox="0 0 100 100" className="size-full" aria-hidden="true">
+    <>
       <circle cx="50" cy="50" r="47" fill="none" stroke="currentColor" strokeOpacity="0.12" strokeWidth="1.25" />
       {Array.from({ length: 12 }).map((_, i) => {
         const a = (i * 30 * Math.PI) / 180;
@@ -37,6 +25,26 @@ function AnalogFace({
           />
         );
       })}
+    </>
+  );
+});
+
+const AnalogHands = memo(function AnalogHands({
+  hour,
+  minute,
+  second,
+  showSeconds,
+}: {
+  hour: number;
+  minute: number;
+  second: number;
+  showSeconds: boolean;
+}) {
+  const hourAngle = ((hour % 12) + minute / 60) * 30;
+  const minuteAngle = (minute + second / 60) * 6;
+  const secondAngle = second * 6;
+  return (
+    <>
       <g suppressHydrationWarning transform={`rotate(${hourAngle} 50 50)`}>
         <line x1="50" y1="50" x2="50" y2="28" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
       </g>
@@ -58,31 +66,62 @@ function AnalogFace({
         </g>
       ) : null}
       <circle cx="50" cy="50" r="2.2" fill="currentColor" />
+    </>
+  );
+});
+
+function AnalogFace({
+  hour,
+  minute,
+  second,
+  showSeconds,
+}: {
+  hour: number;
+  minute: number;
+  second: number;
+  showSeconds: boolean;
+}) {
+  return (
+    <svg viewBox="0 0 100 100" className="size-full" aria-hidden="true">
+      <AnalogDial />
+      <AnalogHands hour={hour} minute={minute} second={second} showSeconds={showSeconds} />
     </svg>
   );
 }
 
 export function ClockWidget({ config }: WidgetRenderProps<ClockConfig>) {
   const { locale, defaultTimeZone } = useWidgetHost();
-  const now = useHostNow();
+  const now = useHostNow(config.showSeconds ? "second" : "minute");
   const tz = resolveWidgetTimeZone(config.timeZone, defaultTimeZone);
   const parts = getDateTimeInTimeZone(now, tz);
+  const intlLocale = locale === "vi" ? "vi-VN" : "en-GB";
 
-  const dateLabel = new Intl.DateTimeFormat(locale === "vi" ? "vi-VN" : "en-GB", {
-    timeZone: tz,
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  }).format(now);
+  const dateFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat(intlLocale, {
+        timeZone: tz,
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+      }),
+    [intlLocale, tz],
+  );
 
-  const timeLabel = new Intl.DateTimeFormat(locale === "vi" ? "vi-VN" : "en-GB", {
-    timeZone: tz,
-    hour: "2-digit",
-    minute: "2-digit",
-    second: config.showSeconds ? "2-digit" : undefined,
-    hour12: config.hour12,
-    hourCycle: config.hour12 ? undefined : "h23",
-  }).format(now);
+  const timeFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat(intlLocale, {
+        timeZone: tz,
+        hour: "2-digit",
+        minute: "2-digit",
+        second: config.showSeconds ? "2-digit" : undefined,
+        hour12: config.hour12,
+        hourCycle: config.hour12 ? undefined : "h23",
+      }),
+    [intlLocale, tz, config.showSeconds, config.hour12],
+  );
+
+  const dateLabel = dateFormatter.format(now);
+  const timeLabel = timeFormatter.format(now);
 
   return (
     <div className="flex h-full min-h-0 flex-col items-center justify-center gap-3">

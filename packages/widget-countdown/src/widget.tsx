@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { cn } from "@eve/ui";
 import { isNewYearDay, remainingUntil, resolveWidgetTimeZone, yearProgress } from "@eve/widget-shared";
 import { useHostNow, useWidgetHost } from "@eve/dashboard-host";
@@ -9,21 +10,65 @@ function pad(value: number, size: number) {
   return String(value).padStart(size, "0");
 }
 
-function DigitValue({ value }: { value: string }) {
+const CountdownUnit = memo(function CountdownUnit({
+  value,
+  label,
+  compact,
+}: {
+  value: string;
+  label: string;
+  compact?: boolean;
+}) {
   return (
-    <span suppressHydrationWarning className="inline-block tabular-nums">
-      {value}
-    </span>
+    <div className="flex flex-col items-center justify-center rounded-md bg-surface-2 px-2 py-3 sm:py-4">
+      <div
+        className={cn(
+          "font-display leading-none font-medium tracking-tight text-fg",
+          compact ? "text-3xl sm:text-4xl" : "text-count",
+        )}
+      >
+        <span suppressHydrationWarning className="inline-block tabular-nums">
+          {value}
+        </span>
+      </div>
+      <div className="mt-2 text-unit tracking-caps text-muted uppercase">{label}</div>
+    </div>
   );
-}
+});
+
+const YearMeter = memo(function YearMeter({
+  percent,
+  year,
+  label,
+}: {
+  percent: number;
+  year: number;
+  label: string;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="h-1 min-w-0 flex-1 overflow-hidden rounded-full bg-surface-2">
+        <div
+          suppressHydrationWarning
+          className="h-full rounded-full bg-accent"
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+      <span suppressHydrationWarning className="shrink-0 text-xs tabular-nums text-muted">
+        {percent}% {label} {year}
+      </span>
+    </div>
+  );
+});
 
 export function CountdownWidget({ config, compact }: WidgetRenderProps<CountdownConfig>) {
   const { locale, defaultTimeZone } = useWidgetHost();
   const copy = countdownCopy[locale];
   const tz = resolveWidgetTimeZone(config.timeZone, defaultTimeZone);
-  const now = useHostNow();
+  const now = useHostNow("second");
   const remaining = remainingUntil(now, tz, config.mode);
   const progress = yearProgress(now, tz);
+  const yearPercent = Math.round(progress.ratio * 100);
   const celebrating = isNewYearDay(now, tz, config.mode);
   const eve = remaining.days === 0 && !celebrating;
 
@@ -58,35 +103,16 @@ export function CountdownWidget({ config, compact }: WidgetRenderProps<Countdown
 
       <div className={cn("grid gap-2", compact ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4")}>
         {units.map((unit) => (
-          <div
+          <CountdownUnit
             key={unit.key}
-            className="flex flex-col items-center justify-center rounded-md bg-surface-2 px-2 py-3 sm:py-4"
-          >
-            <div
-              className={cn(
-                "font-display leading-none font-medium tracking-tight text-fg",
-                compact ? "text-3xl sm:text-4xl" : "text-count",
-              )}
-            >
-              <DigitValue value={unit.value} />
-            </div>
-            <div className="mt-2 text-unit tracking-caps text-muted uppercase">{unit.label}</div>
-          </div>
+            value={unit.value}
+            label={unit.label}
+            compact={compact}
+          />
         ))}
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="h-1 min-w-0 flex-1 overflow-hidden rounded-full bg-surface-2">
-          <div
-            suppressHydrationWarning
-            className="h-full rounded-full bg-accent"
-            style={{ width: `${Math.round(progress.ratio * 100)}%` }}
-          />
-        </div>
-        <span suppressHydrationWarning className="shrink-0 text-xs tabular-nums text-muted">
-          {Math.round(progress.ratio * 100)}% {copy.yearProgress} {progress.year}
-        </span>
-      </div>
+      <YearMeter percent={yearPercent} year={progress.year} label={copy.yearProgress} />
     </div>
   );
 }

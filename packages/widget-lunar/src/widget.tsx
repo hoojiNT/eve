@@ -51,7 +51,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 
 export function LunarWidget({ config, compact }: WidgetRenderProps<LunarConfig>) {
   const { locale, defaultTimeZone, isEditing } = useWidgetHost();
-  const now = useHostNow();
+  const now = useHostNow("minute");
   const tz = resolveWidgetTimeZone(config.timeZone, defaultTimeZone);
   const copy = lunarCopy[locale];
   const fineHover = useFineHover();

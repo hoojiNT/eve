@@ -30,17 +30,28 @@ export type DateTimeParts = {
   second: number;
 };
 
+const dateTimeFormatters = new Map<string, Intl.DateTimeFormat>();
+
+function dateTimeFormatter(timeZone: string): Intl.DateTimeFormat {
+  let formatter = dateTimeFormatters.get(timeZone);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat("en-GB", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hourCycle: "h23",
+    });
+    dateTimeFormatters.set(timeZone, formatter);
+  }
+  return formatter;
+}
+
 export function getDateTimeInTimeZone(date: Date, timeZone: string): DateTimeParts {
-  const parts = new Intl.DateTimeFormat("en-GB", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hourCycle: "h23",
-  }).formatToParts(date);
+  const parts = dateTimeFormatter(timeZone).formatToParts(date);
   const get = (type: Intl.DateTimeFormatPartTypes) =>
     Number(parts.find((p) => p.type === type)?.value ?? "0");
   return {

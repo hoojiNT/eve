@@ -7,7 +7,7 @@ import type { ProgressConfig } from "./schema";
 export function ProgressWidget({ config }: WidgetRenderProps<ProgressConfig>) {
   const { locale, defaultTimeZone } = useWidgetHost();
   const copy = progressCopy[locale];
-  const now = useHostNow();
+  const now = useHostNow("minute");
   const tz = resolveWidgetTimeZone(config.timeZone, defaultTimeZone);
   const stats = yearProgress(now, tz);
   const daysInYear = Math.round(stats.total / 86400000);
