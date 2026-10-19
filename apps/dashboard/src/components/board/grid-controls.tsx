@@ -35,9 +35,13 @@ const DENSITIES: Density[] = ["comfortable", "regular", "compact"];
 
 export function GridControls({
   defaultOpen = false,
+  open,
+  onOpenChange,
   trigger,
 }: {
   defaultOpen?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   trigger: ReactNode;
 }) {
   const locale = useBoardStore((s) => s.locale);
@@ -76,7 +80,11 @@ export function GridControls({
 
   return (
     <>
-      <DropdownMenu defaultOpen={defaultOpen}>
+      <DropdownMenu
+        open={open}
+        onOpenChange={onOpenChange}
+        defaultOpen={open === undefined ? defaultOpen : undefined}
+      >
         <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
         <DropdownMenuContent
           side="top"
